@@ -230,6 +230,22 @@
                 <div class="legend-item"><span class="original">Gene names</span> <span class="mapped">→ G1, G2, ...</span></div>
                 <div class="legend-item"><span class="original">DMR names</span> <span class="mapped">→ D1, D2, ...</span></div>
             </div>
+            
+            <h3 style="margin-top: 20px;">Node Colors</h3>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <span style="display: inline-block; width: 20px; height: 20px; background: #92D1C3; border: 1.5px solid #000; vertical-align: middle; margin-right: 8px;"></span>
+                    <span>Age/Sex/EAA (A, S, E1-E3)</span>
+                </div>
+                <div class="legend-item">
+                    <span style="display: inline-block; width: 20px; height: 20px; background: #FFB1BD; border: 1.5px solid #000; vertical-align: middle; margin-right: 8px;"></span>
+                    <span>Disease (D)</span>
+                </div>
+                <div class="legend-item">
+                    <span style="display: inline-block; width: 20px; height: 20px; background: #BFD5E2; border: 1.5px solid #000; vertical-align: middle; margin-right: 8px;"></span>
+                    <span>Other variables</span>
+                </div>
+            </div>
         </div>
 
         <div class="info">
@@ -324,61 +340,72 @@
                     {
                         selector: 'node',
                         style: {
-                            'background-color': '#ffffff',
-                            'border-color': '#0a0a0a',
-                            'border-width': 3,
+                            'background-color': function(ele) {
+                                const label = ele.data('label');
+                                // Age/Sex/EAA variables
+                                if (['A', 'S', 'E1', 'E2', 'E3'].includes(label)) {
+                                    return '#92D1C3';
+                                }
+                                // Disease
+                                if (label === 'D') {
+                                    return '#FFB1BD';
+                                }
+                                // Others (MEs, Genes, DMRs)
+                                return '#BFD5E2';
+                            },
+                            'border-color': '#000000',
+                            'border-width': 1.5,
                             'label': 'data(label)',
                             'text-valign': 'center',
                             'text-halign': 'center',
-                            'font-family': 'Space Mono, monospace',
-                            'font-size': '14px',
-                            'font-weight': '700',
-                            'color': '#0a0a0a',
-                            'width': 45,
-                            'height': 45
+                            'font-family': 'Times New Roman, serif',
+                            'font-size': '16px',
+                            'font-weight': 'normal',
+                            'color': '#000000',
+                            'width': 50,
+                            'height': 50
                         }
                     },
                     {
                         selector: 'node:selected',
                         style: {
-                            'background-color': '#e8f8f8',
-                            'border-width': 4
+                            'border-width': 3
                         }
                     },
                     {
                         selector: 'edge',
                         style: {
-                            'width': 2.5,
-                            'line-color': '#0a0a0a',
-                            'target-arrow-color': '#0a0a0a',
+                            'width': 1.5,
+                            'line-color': '#000000',
+                            'target-arrow-color': '#000000',
                             'target-arrow-shape': 'triangle',
                             'arrow-scale': 1.5,
                             'curve-style': 'bezier',
+                            'opacity': 0.5,
                             'target-distance-from-node': 5
                         }
                     },
                     {
                         selector: 'edge:selected',
                         style: {
-                            'line-color': '#4a4a4a',
-                            'target-arrow-color': '#4a4a4a',
-                            'width': 3
+                            'line-color': '#000000',
+                            'target-arrow-color': '#000000',
+                            'width': 2,
+                            'opacity': 0.7
                         }
                     }
                 ],
                 layout: {
-                    name: 'cose',
+                    name: 'circle',
                     animate: true,
                     animationDuration: 500,
-                    nodeRepulsion: 8000,
-                    idealEdgeLength: 100,
-                    edgeElasticity: 100,
-                    nestingFactor: 1.2,
-                    gravity: 1,
-                    numIter: 1000,
-                    initialTemp: 200,
-                    coolingFactor: 0.95,
-                    minTemp: 1.0
+                    avoidOverlap: true,
+                    radius: undefined,
+                    startAngle: 0,
+                    sweep: undefined,
+                    clockwise: true,
+                    sort: undefined,
+                    spacingFactor: 1.5
                 },
                 minZoom: 0.3,
                 maxZoom: 3
@@ -391,10 +418,10 @@
             });
 
             currentLayout = cy.layout({
-                name: 'cose',
+                name: 'circle',
                 animate: true,
-                nodeRepulsion: 8000,
-                idealEdgeLength: 100
+                avoidOverlap: true,
+                spacingFactor: 1.5
             });
         }
 
@@ -424,18 +451,16 @@
         function resetLayout() {
             if (cy) {
                 currentLayout = cy.layout({
-                    name: 'cose',
+                    name: 'circle',
                     animate: true,
                     animationDuration: 800,
-                    nodeRepulsion: 8000,
-                    idealEdgeLength: 100,
-                    edgeElasticity: 100,
-                    nestingFactor: 1.2,
-                    gravity: 1,
-                    numIter: 1000,
-                    initialTemp: 200,
-                    coolingFactor: 0.95,
-                    minTemp: 1.0
+                    avoidOverlap: true,
+                    radius: undefined,
+                    startAngle: 0,
+                    sweep: undefined,
+                    clockwise: true,
+                    sort: undefined,
+                    spacingFactor: 1.5
                 });
                 currentLayout.run();
             }
