@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=5.0">
     <title>LiNGAM DAG Visualizer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,6 +20,8 @@
             background: #f4ffff;
             min-height: 100vh;
             padding: 20px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .container {
@@ -51,6 +53,8 @@
             gap: 8px;
             margin-bottom: 20px;
             border-bottom: 3px solid #0a0a0a;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .tab {
@@ -65,6 +69,8 @@
             transition: all 0.2s;
             position: relative;
             top: 3px;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .tab:hover {
@@ -82,6 +88,7 @@
             height: 700px;
             position: relative;
             box-shadow: 8px 8px 0 rgba(10, 10, 10, 0.1);
+            touch-action: none;
         }
 
         #cy {
@@ -108,6 +115,7 @@
             cursor: pointer;
             transition: all 0.2s;
             box-shadow: 3px 3px 0 rgba(10, 10, 10, 0.2);
+            -webkit-tap-highlight-color: transparent;
         }
 
         .control-btn:hover {
@@ -145,8 +153,9 @@
 
         .legend-item {
             display: flex;
-            justify-content: space-between;
+            gap: 12px;
             padding: 4px 0;
+            align-items: center;
         }
 
         .legend-item .original {
@@ -156,6 +165,15 @@
         .legend-item .mapped {
             font-weight: 700;
             color: #0a0a0a;
+        }
+
+        .color-box {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 1.5px solid #000;
+            vertical-align: middle;
+            margin-right: 8px;
         }
 
         .info {
@@ -171,17 +189,29 @@
             color: #0a0a0a;
         }
 
+        /* Mobile Responsive Styles */
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
             h1 {
                 font-size: 24px;
             }
 
+            .subtitle {
+                font-size: 12px;
+            }
+
             .tabs {
-                flex-direction: column;
+                flex-wrap: nowrap;
+                gap: 4px;
             }
 
             .tab {
-                width: 100%;
+                padding: 12px 16px;
+                font-size: 12px;
+                min-width: auto;
             }
 
             .graph-container {
@@ -192,6 +222,72 @@
                 flex-direction: column;
                 top: 10px;
                 right: 10px;
+                gap: 6px;
+            }
+
+            .control-btn {
+                padding: 8px 12px;
+                font-size: 11px;
+            }
+
+            .legend {
+                padding: 15px;
+            }
+
+            .legend h3 {
+                font-size: 14px;
+            }
+
+            .legend-grid {
+                grid-template-columns: 1fr;
+                gap: 6px;
+                font-size: 11px;
+            }
+
+            .info {
+                font-size: 11px;
+                padding: 12px;
+            }
+        }
+
+        /* Small mobile devices */
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 20px;
+            }
+
+            .tab {
+                padding: 10px 12px;
+                font-size: 11px;
+            }
+
+            .graph-container {
+                height: 400px;
+            }
+
+            .legend-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+        }
+
+        /* Landscape mobile */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .graph-container {
+                height: 350px;
+            }
+        }
+
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .control-btn {
+                padding: 12px 18px;
+                font-size: 13px;
+            }
+
+            .tab {
+                padding: 16px 20px;
             }
         }
     </style>
@@ -226,36 +322,36 @@
                 <div class="legend-item"><span class="original">horvath2013_EAA</span> <span class="mapped">→ E1</span></div>
                 <div class="legend-item"><span class="original">hannum_EAA</span> <span class="mapped">→ E2</span></div>
                 <div class="legend-item"><span class="original">grimage2_EAA</span> <span class="mapped">→ E3</span></div>
-                <div class="legend-item"><span class="original">disease</span> <span class="mapped">→ D</span></div>
+                <div class="legend-item"><span class="original">disease</span> <span class="mapped">→ DIS</span></div>
                 <div class="legend-item"><span class="original">Gene names</span> <span class="mapped">→ G1, G2, ...</span></div>
-                <div class="legend-item"><span class="original">DMR names</span> <span class="mapped">→ D1, D2, ...</span></div>
+                <div class="legend-item"><span class="original">DMR names</span> <span class="mapped">→ R1, R2, ...</span></div>
             </div>
             
             <h3 style="margin-top: 20px;">Node Colors</h3>
-            <div class="legend-grid">
+            <div class="legend-grid" style="gap: 12px;">
                 <div class="legend-item">
-                    <span style="display: inline-block; width: 20px; height: 20px; background: #92D1C3; border: 1.5px solid #000; vertical-align: middle; margin-right: 8px;"></span>
+                    <span class="color-box" style="background: #92D1C3;"></span>
                     <span>Age/Sex/EAA (A, S, E1-E3)</span>
                 </div>
                 <div class="legend-item">
-                    <span style="display: inline-block; width: 20px; height: 20px; background: #FFB1BD; border: 1.5px solid #000; vertical-align: middle; margin-right: 8px;"></span>
-                    <span>Disease (D)</span>
+                    <span class="color-box" style="background: #FFB1BD;"></span>
+                    <span>Disease (DIS)</span>
                 </div>
                 <div class="legend-item">
-                    <span style="display: inline-block; width: 20px; height: 20px; background: #BFD5E2; border: 1.5px solid #000; vertical-align: middle; margin-right: 8px;"></span>
+                    <span class="color-box" style="background: #BFD5E2;"></span>
                     <span>Other variables</span>
                 </div>
             </div>
         </div>
 
         <div class="info">
-            <strong>How to use:</strong> Drag nodes to rearrange • Scroll to zoom • Click node to see original name • Use FIT to center view • Use RESET to restore layout
+            <strong>How to use:</strong> Drag nodes to rearrange • Scroll/pinch to zoom • Tap node to see original name • Use FIT to center view • Use RESET to restore layout
         </div>
     </div>
 
     <script src="graph_data.js"></script>
     <script>
-        // Label mappings
+        // Label mappings - changed disease to DIS to avoid conflict with DMR labels
         const LABEL_MAPPINGS = {
             'ME0': 'M0', 'ME1': 'M1', 'ME2': 'M2', 'ME3': 'M3',
             'ME4': 'M4', 'ME5': 'M5', 'ME6': 'M6',
@@ -264,7 +360,7 @@
             'horvath2013_EAA': 'E1',
             'hannum_EAA': 'E2',
             'grimage2_EAA': 'E3',
-            'disease': 'D'
+            'disease': 'DIS'
         };
 
         let geneCounter = 1;
@@ -286,12 +382,26 @@
 
             if (type === 'dmr') {
                 if (!dmrMappings[label]) {
-                    dmrMappings[label] = `D${dmrCounter++}`;
+                    dmrMappings[label] = `R${dmrCounter++}`;
                 }
                 return dmrMappings[label];
             }
 
             return label;
+        }
+
+        // Get node color based on label
+        function getNodeColor(label) {
+            // Age/Sex/EAA variables
+            if (['A', 'S', 'E1', 'E2', 'E3'].includes(label)) {
+                return '#92D1C3';
+            }
+            // Disease
+            if (label === 'DIS') {
+                return '#FFB1BD';
+            }
+            // Others (MEs, Genes, DMRs)
+            return '#BFD5E2';
         }
 
         // Build Cytoscape elements from edge data
@@ -311,13 +421,17 @@
                 });
             });
 
-            const cytoscapeNodes = Array.from(nodeSet).map(id => ({
-                data: {
-                    id: id,
-                    label: mapLabel(id, type),
-                    originalLabel: id
-                }
-            }));
+            const cytoscapeNodes = Array.from(nodeSet).map(id => {
+                const label = mapLabel(id, type);
+                return {
+                    data: {
+                        id: id,
+                        label: label,
+                        originalLabel: id,
+                        nodeColor: getNodeColor(label)
+                    }
+                };
+            });
 
             return [...cytoscapeNodes, ...cytoscapeEdges];
         }
@@ -340,19 +454,7 @@
                     {
                         selector: 'node',
                         style: {
-                            'background-color': function(ele) {
-                                const label = ele.data('label');
-                                // Age/Sex/EAA variables
-                                if (['A', 'S', 'E1', 'E2', 'E3'].includes(label)) {
-                                    return '#92D1C3';
-                                }
-                                // Disease
-                                if (label === 'D') {
-                                    return '#FFB1BD';
-                                }
-                                // Others (MEs, Genes, DMRs)
-                                return '#BFD5E2';
-                            },
+                            'background-color': 'data(nodeColor)',
                             'border-color': '#000000',
                             'border-width': 1.5,
                             'label': 'data(label)',
@@ -382,7 +484,8 @@
                             'arrow-scale': 1.5,
                             'curve-style': 'bezier',
                             'opacity': 0.5,
-                            'target-distance-from-node': 5
+                            'source-endpoint': 'outside-to-node',
+                            'target-endpoint': 'outside-to-node'
                         }
                     },
                     {
@@ -400,27 +503,26 @@
                     animate: true,
                     animationDuration: 500,
                     avoidOverlap: true,
-                    radius: undefined,
-                    startAngle: 0,
-                    sweep: undefined,
-                    clockwise: true,
-                    sort: undefined,
                     spacingFactor: 1.5
                 },
                 minZoom: 0.3,
-                maxZoom: 3
+                maxZoom: 3,
+                // Mobile-friendly settings
+                wheelSensitivity: 0.2,
+                pixelRatio: 'auto',
+                motionBlur: false
             });
 
-            // Show original label on click
+            // Show original label on click/tap
             cy.on('tap', 'node', function(evt) {
                 const node = evt.target;
                 alert(`${node.data('label')} = ${node.data('originalLabel')}`);
             });
 
-            currentLayout = cy.layout({
+            // Store current layout
+            currentLayout = cy.elements().layout({
                 name: 'circle',
                 animate: true,
-                avoidOverlap: true,
                 spacingFactor: 1.5
             });
         }
@@ -450,16 +552,11 @@
 
         function resetLayout() {
             if (cy) {
-                currentLayout = cy.layout({
+                currentLayout = cy.elements().layout({
                     name: 'circle',
                     animate: true,
                     animationDuration: 800,
                     avoidOverlap: true,
-                    radius: undefined,
-                    startAngle: 0,
-                    sweep: undefined,
-                    clockwise: true,
-                    sort: undefined,
                     spacingFactor: 1.5
                 });
                 currentLayout.run();
@@ -469,6 +566,21 @@
         // Initialize with ME graph
         window.addEventListener('load', () => {
             initCytoscape('me');
+        });
+
+        // Prevent accidental zoom on mobile
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+
+        // Handle orientation change
+        window.addEventListener('orientationchange', function() {
+            setTimeout(function() {
+                if (cy) {
+                    cy.resize();
+                    cy.fit(null, 50);
+                }
+            }, 100);
         });
     </script>
 </body>
