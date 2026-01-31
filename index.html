@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiNGAM DAG Visualizer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background: #f4ffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: 700;
+            color: #0a0a0a;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #666;
+            font-weight: 400;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #0a0a0a;
+        }
+
+        .tab {
+            padding: 14px 24px;
+            background: #fff;
+            border: 3px solid #0a0a0a;
+            border-bottom: none;
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            top: 3px;
+        }
+
+        .tab:hover {
+            background: #e8f8f8;
+        }
+
+        .tab.active {
+            background: #0a0a0a;
+            color: #f4ffff;
+        }
+
+        .graph-container {
+            background: #fff;
+            border: 3px solid #0a0a0a;
+            height: 700px;
+            position: relative;
+            box-shadow: 8px 8px 0 rgba(10, 10, 10, 0.1);
+        }
+
+        #cy {
+            width: 100%;
+            height: 100%;
+        }
+
+        .controls {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .control-btn {
+            padding: 10px 16px;
+            background: #fff;
+            border: 2px solid #0a0a0a;
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 3px 3px 0 rgba(10, 10, 10, 0.2);
+        }
+
+        .control-btn:hover {
+            background: #0a0a0a;
+            color: #f4ffff;
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0 rgba(10, 10, 10, 0.3);
+        }
+
+        .control-btn:active {
+            transform: translate(1px, 1px);
+            box-shadow: 2px 2px 0 rgba(10, 10, 10, 0.2);
+        }
+
+        .legend {
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff;
+            border: 3px solid #0a0a0a;
+            box-shadow: 6px 6px 0 rgba(10, 10, 10, 0.1);
+        }
+
+        .legend h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #0a0a0a;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+
+        .legend-item .original {
+            color: #666;
+        }
+
+        .legend-item .mapped {
+            font-weight: 700;
+            color: #0a0a0a;
+        }
+
+        .info {
+            margin-top: 15px;
+            padding: 15px;
+            background: #fff;
+            border: 3px solid #0a0a0a;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .info strong {
+            color: #0a0a0a;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 24px;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                width: 100%;
+            }
+
+            .graph-container {
+                height: 500px;
+            }
+
+            .controls {
+                flex-direction: column;
+                top: 10px;
+                right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>LiNGAM Causal DAGs</h1>
+            <p class="subtitle">Interactive Directed Acyclic Graphs from Validated Edges</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('me')">Module Eigengenes</button>
+            <button class="tab" onclick="switchTab('gene')">Genes</button>
+            <button class="tab" onclick="switchTab('dmr')">DMRs</button>
+        </div>
+
+        <div class="graph-container">
+            <div class="controls">
+                <button class="control-btn" onclick="fitGraph()">FIT</button>
+                <button class="control-btn" onclick="resetLayout()">RESET</button>
+            </div>
+            <div id="cy"></div>
+        </div>
+
+        <div class="legend">
+            <h3>Variable Mappings</h3>
+            <div class="legend-grid">
+                <div class="legend-item"><span class="original">ME0-ME6</span> <span class="mapped">→ M0-M6</span></div>
+                <div class="legend-item"><span class="original">age</span> <span class="mapped">→ A</span></div>
+                <div class="legend-item"><span class="original">sex</span> <span class="mapped">→ S</span></div>
+                <div class="legend-item"><span class="original">horvath2013_EAA</span> <span class="mapped">→ E1</span></div>
+                <div class="legend-item"><span class="original">hannum_EAA</span> <span class="mapped">→ E2</span></div>
+                <div class="legend-item"><span class="original">grimage2_EAA</span> <span class="mapped">→ E3</span></div>
+                <div class="legend-item"><span class="original">disease</span> <span class="mapped">→ D</span></div>
+                <div class="legend-item"><span class="original">Gene names</span> <span class="mapped">→ G1, G2, ...</span></div>
+                <div class="legend-item"><span class="original">DMR names</span> <span class="mapped">→ D1, D2, ...</span></div>
+            </div>
+        </div>
+
+        <div class="info">
+            <strong>How to use:</strong> Drag nodes to rearrange • Scroll to zoom • Click node to see original name • Use FIT to center view • Use RESET to restore layout
+        </div>
+    </div>
+
+    <script src="graph_data.js"></script>
+    <script>
+        // Label mappings
+        const LABEL_MAPPINGS = {
+            'ME0': 'M0', 'ME1': 'M1', 'ME2': 'M2', 'ME3': 'M3',
+            'ME4': 'M4', 'ME5': 'M5', 'ME6': 'M6',
+            'age': 'A',
+            'sex': 'S',
+            'horvath2013_EAA': 'E1',
+            'hannum_EAA': 'E2',
+            'grimage2_EAA': 'E3',
+            'disease': 'D'
+        };
+
+        let geneCounter = 1;
+        let dmrCounter = 1;
+        const geneMappings = {};
+        const dmrMappings = {};
+
+        function mapLabel(label, type) {
+            if (LABEL_MAPPINGS[label]) {
+                return LABEL_MAPPINGS[label];
+            }
+
+            if (type === 'gene') {
+                if (!geneMappings[label]) {
+                    geneMappings[label] = `G${geneCounter++}`;
+                }
+                return geneMappings[label];
+            }
+
+            if (type === 'dmr') {
+                if (!dmrMappings[label]) {
+                    dmrMappings[label] = `D${dmrCounter++}`;
+                }
+                return dmrMappings[label];
+            }
+
+            return label;
+        }
+
+        // Build Cytoscape elements from edge data
+        function buildElements(edges, type) {
+            const nodeSet = new Set();
+            const cytoscapeEdges = [];
+
+            edges.forEach(edge => {
+                nodeSet.add(edge.source);
+                nodeSet.add(edge.target);
+                cytoscapeEdges.push({
+                    data: {
+                        id: `${edge.source}-${edge.target}`,
+                        source: edge.source,
+                        target: edge.target
+                    }
+                });
+            });
+
+            const cytoscapeNodes = Array.from(nodeSet).map(id => ({
+                data: {
+                    id: id,
+                    label: mapLabel(id, type),
+                    originalLabel: id
+                }
+            }));
+
+            return [...cytoscapeNodes, ...cytoscapeEdges];
+        }
+
+        // Cytoscape instance
+        let cy;
+        let currentLayout;
+
+        function initCytoscape(graphType) {
+            const elements = buildElements(GRAPH_DATA[graphType].edges, graphType);
+
+            if (cy) {
+                cy.destroy();
+            }
+
+            cy = cytoscape({
+                container: document.getElementById('cy'),
+                elements: elements,
+                style: [
+                    {
+                        selector: 'node',
+                        style: {
+                            'background-color': '#ffffff',
+                            'border-color': '#0a0a0a',
+                            'border-width': 3,
+                            'label': 'data(label)',
+                            'text-valign': 'center',
+                            'text-halign': 'center',
+                            'font-family': 'Space Mono, monospace',
+                            'font-size': '14px',
+                            'font-weight': '700',
+                            'color': '#0a0a0a',
+                            'width': 45,
+                            'height': 45
+                        }
+                    },
+                    {
+                        selector: 'node:selected',
+                        style: {
+                            'background-color': '#e8f8f8',
+                            'border-width': 4
+                        }
+                    },
+                    {
+                        selector: 'edge',
+                        style: {
+                            'width': 2.5,
+                            'line-color': '#0a0a0a',
+                            'target-arrow-color': '#0a0a0a',
+                            'target-arrow-shape': 'triangle',
+                            'arrow-scale': 1.5,
+                            'curve-style': 'bezier',
+                            'target-distance-from-node': 5
+                        }
+                    },
+                    {
+                        selector: 'edge:selected',
+                        style: {
+                            'line-color': '#4a4a4a',
+                            'target-arrow-color': '#4a4a4a',
+                            'width': 3
+                        }
+                    }
+                ],
+                layout: {
+                    name: 'cose',
+                    animate: true,
+                    animationDuration: 500,
+                    nodeRepulsion: 8000,
+                    idealEdgeLength: 100,
+                    edgeElasticity: 100,
+                    nestingFactor: 1.2,
+                    gravity: 1,
+                    numIter: 1000,
+                    initialTemp: 200,
+                    coolingFactor: 0.95,
+                    minTemp: 1.0
+                },
+                minZoom: 0.3,
+                maxZoom: 3
+            });
+
+            // Show original label on click
+            cy.on('tap', 'node', function(evt) {
+                const node = evt.target;
+                alert(`${node.data('label')} = ${node.data('originalLabel')}`);
+            });
+
+            currentLayout = cy.layout({
+                name: 'cose',
+                animate: true,
+                nodeRepulsion: 8000,
+                idealEdgeLength: 100
+            });
+        }
+
+        function switchTab(graphType) {
+            // Reset counters for new graph
+            geneCounter = 1;
+            dmrCounter = 1;
+            Object.keys(geneMappings).forEach(key => delete geneMappings[key]);
+            Object.keys(dmrMappings).forEach(key => delete dmrMappings[key]);
+
+            // Update tab UI
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Initialize new graph
+            initCytoscape(graphType);
+        }
+
+        function fitGraph() {
+            if (cy) {
+                cy.fit(null, 50);
+            }
+        }
+
+        function resetLayout() {
+            if (cy) {
+                currentLayout = cy.layout({
+                    name: 'cose',
+                    animate: true,
+                    animationDuration: 800,
+                    nodeRepulsion: 8000,
+                    idealEdgeLength: 100,
+                    edgeElasticity: 100,
+                    nestingFactor: 1.2,
+                    gravity: 1,
+                    numIter: 1000,
+                    initialTemp: 200,
+                    coolingFactor: 0.95,
+                    minTemp: 1.0
+                });
+                currentLayout.run();
+            }
+        }
+
+        // Initialize with ME graph
+        window.addEventListener('load', () => {
+            initCytoscape('me');
+        });
+    </script>
+</body>
+</html>
