@@ -378,7 +378,7 @@
                 <div class="legend-item"><span class="original">horvath2013_EAA</span> <span class="mapped">→ E1</span></div>
                 <div class="legend-item"><span class="original">hannum_EAA</span> <span class="mapped">→ E2</span></div>
                 <div class="legend-item"><span class="original">grimage2_EAA</span> <span class="mapped">→ E3</span></div>
-                <div class="legend-item"><span class="original">disease</span> <span class="mapped">→ DIS</span></div>
+                <div class="legend-item"><span class="original">disease</span> <span class="mapped">→ D</span></div>
                 <div class="legend-item"><span class="original">Gene names</span> <span class="mapped">→ G1, G2, ...</span></div>
                 <div class="legend-item"><span class="original">DMR names</span> <span class="mapped">→ R1, R2, ...</span></div>
             </div>
@@ -391,7 +391,7 @@
                 </div>
                 <div class="legend-item">
                     <span class="color-box" style="background: #FFB1BD;"></span>
-                    <span>Disease (DIS)</span>
+                    <span>Disease (D)</span>
                 </div>
                 <div class="legend-item">
                     <span class="color-box" style="background: #BFD5E2;"></span>
@@ -413,7 +413,7 @@
 
     <script src="graph_data.js"></script>
     <script>
-        // Label mappings - changed disease to DIS to avoid conflict with DMR labels
+        // Label mappings - changed disease to D to avoid conflict with DMR labels
         const LABEL_MAPPINGS = {
             'ME0': 'M0', 'ME1': 'M1', 'ME2': 'M2', 'ME3': 'M3',
             'ME4': 'M4', 'ME5': 'M5', 'ME6': 'M6',
@@ -422,7 +422,7 @@
             'horvath2013_EAA': 'E1',
             'hannum_EAA': 'E2',
             'grimage2_EAA': 'E3',
-            'disease': 'DIS'
+            'disease': 'D'
         };
 
         let geneCounter = 1;
@@ -444,7 +444,7 @@
 
             if (type === 'dmr') {
                 if (!dmrMappings[label]) {
-                    dmrMappings[label] = `R${dmrCounter++}`;
+                    dmrMappings[label] = `D${dmrCounter++}`;
                 }
                 return dmrMappings[label];
             }
@@ -459,7 +459,7 @@
                 return '#92D1C3';
             }
             // Disease
-            if (label === 'DIS') {
+            if (label === 'D') {
                 return '#FFB1BD';
             }
             // Others (MEs, Genes, DMRs)
