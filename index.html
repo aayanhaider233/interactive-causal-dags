@@ -189,6 +189,62 @@
             color: #0a0a0a;
         }
 
+        /* Custom tooltip dialog */
+        .node-tooltip {
+            position: absolute;
+            background: #fff;
+            border: 3px solid #0a0a0a;
+            padding: 12px 16px;
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            color: #0a0a0a;
+            box-shadow: 5px 5px 0 rgba(10, 10, 10, 0.2);
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            max-width: 300px;
+            word-wrap: break-word;
+        }
+
+        .node-tooltip.show {
+            opacity: 1;
+        }
+
+        .node-tooltip::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-bottom-color: #0a0a0a;
+        }
+
+        .node-tooltip::after {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-bottom-color: #fff;
+            margin-bottom: -1px;
+        }
+
+        .tooltip-label {
+            color: #666;
+            font-size: 11px;
+            font-weight: 400;
+            margin-bottom: 4px;
+        }
+
+        .tooltip-value {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
         /* Mobile Responsive Styles */
         @media (max-width: 768px) {
             body {
@@ -347,6 +403,12 @@
         <div class="info">
             <strong>How to use:</strong> Drag nodes to rearrange • Scroll/pinch to zoom • Tap node to see original name • Use FIT to center view • Use RESET to restore layout
         </div>
+    </div>
+
+    <!-- Custom tooltip -->
+    <div class="node-tooltip" id="nodeTooltip">
+        <div class="tooltip-label">Original Name:</div>
+        <div class="tooltip-value" id="tooltipValue"></div>
     </div>
 
     <script src="graph_data.js"></script>
@@ -513,10 +575,41 @@
                 motionBlur: false
             });
 
-            // Show original label on click/tap
+            // Show original label on click/tap with custom tooltip
             cy.on('tap', 'node', function(evt) {
                 const node = evt.target;
-                alert(`${node.data('label')} = ${node.data('originalLabel')}`);
+                const tooltip = document.getElementById('nodeTooltip');
+                const tooltipValue = document.getElementById('tooltipValue');
+                
+                // Set tooltip content
+                tooltipValue.textContent = node.data('originalLabel');
+                
+                // Get node position on screen
+                const renderedPosition = node.renderedPosition();
+                const container = document.getElementById('cy').getBoundingClientRect();
+                
+                // Position tooltip above the node
+                const tooltipX = container.left + renderedPosition.x;
+                const tooltipY = container.top + renderedPosition.y - 70;
+                
+                tooltip.style.left = tooltipX + 'px';
+                tooltip.style.top = tooltipY + 'px';
+                tooltip.style.transform = 'translateX(-50%)';
+                
+                // Show tooltip
+                tooltip.classList.add('show');
+                
+                // Hide tooltip after 3 seconds
+                setTimeout(() => {
+                    tooltip.classList.remove('show');
+                }, 3000);
+            });
+
+            // Hide tooltip when clicking elsewhere
+            cy.on('tap', function(evt) {
+                if (evt.target === cy) {
+                    document.getElementById('nodeTooltip').classList.remove('show');
+                }
             });
 
             // Store current layout
