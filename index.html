@@ -171,6 +171,17 @@
         .legend-item .mapped {
             font-weight: 700;
             color: #0a0a0a;
+            cursor: pointer;
+            text-decoration: underline dotted #999;
+            transition: color 0.15s;
+        }
+
+        .legend-item .mapped:hover {
+            color: #1a6b6b;
+        }
+
+        .legend-item .mapped.highlight-pulse {
+            color: #1a6b6b;
         }
 
         .info {
@@ -279,7 +290,7 @@
         </div>
 
         <div class="info">
-            <strong>How to use:</strong> Drag nodes to rearrange • Scroll/pinch to zoom • Tap node to see original name • Use FIT to center view • Use RESET to restore layout
+            <strong>How to use:</strong> Drag nodes to rearrange • Scroll/pinch to zoom • Tap node to see original name • Click a mapped name in the legend to focus that node • Use FIT to center view • Use RESET to restore layout
         </div>
     </div>
 
@@ -310,6 +321,11 @@
         const geneMappings = {};
         const dmrMappings = {};
 
+        // NODE SIZING: font size in px, padding around text, and the canvas px-per-char estimate
+        const NODE_FONT_SIZE = 20;
+        const NODE_PADDING = 24; // extra px on each side beyond the text width
+        const CHAR_WIDTH_ESTIMATE = NODE_FONT_SIZE * 0.6; // rough monospace-style estimate
+
         function mapDmrLabel(id) {
             const m = id.match(/^chr(\w+)_DMR_(\d+)$/);
             if (m) return `C${m[1]}D${m[2]}`;
@@ -339,6 +355,39 @@
             return '#BFD5E2';
         }
 
+        // Compute the uniform node size for all nodes in this graph
+        // based on the longest label so every node is the same size
+        function computeNodeSize(labels) {
+            const longest = labels.reduce((max, l) => l.length > max.length ? l : max, '');
+            const textWidth = longest.length * CHAR_WIDTH_ESTIMATE;
+            const size = Math.ceil(textWidth + NODE_PADDING * 2);
+            return Math.max(size, 60); // floor of 60px
+        }
+
+        function focusNode(nodeId) {
+            if (!cy) return;
+            const node = cy.getElementById(nodeId);
+            if (!node || node.length === 0) return;
+
+            // Scroll the graph container into view smoothly first
+            document.querySelector('.graph-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            cy.animate({
+                center: { eles: node },
+                zoom: Math.max(cy.zoom(), 1.8)
+            }, {
+                duration: 500,
+                easing: 'ease-in-out-cubic',
+                complete: () => {
+                    // Flash the node border to highlight it
+                    node.animate({ style: { 'border-width': 6 } }, { duration: 200 })
+                        .animate({ style: { 'border-width': 1.5 } }, { duration: 200 })
+                        .animate({ style: { 'border-width': 6 } }, { duration: 200 })
+                        .animate({ style: { 'border-width': 1.5 } }, { duration: 200 });
+                }
+            });
+        }
+
         function buildLegend(nodeIds, type) {
             const items = [];
             const seen = new Set();
@@ -348,7 +397,7 @@
                 seen.add(id);
                 const mapped = mapLabel(id, type);
                 const original = getOriginalLabel(id);
-                items.push({ original, mapped });
+                items.push({ id, original, mapped });
             });
 
             items.sort((a, b) => {
@@ -361,10 +410,10 @@
                 return a.mapped.localeCompare(b.mapped, undefined, { numeric: true });
             });
 
-            document.getElementById('legendGrid').innerHTML = items.map(({ original, mapped }) =>
+            document.getElementById('legendGrid').innerHTML = items.map(({ id, original, mapped }) =>
                 `<div class="legend-item">
                     <span class="original">${original}</span>
-                    <span class="mapped">→ ${mapped}</span>
+                    <span class="mapped" onclick="focusNode('${id}')" title="Click to focus node in graph">→ ${mapped}</span>
                 </div>`
             ).join('');
         }
@@ -386,6 +435,8 @@
             });
 
             const nodeIds = Array.from(nodeSet);
+            const labels = nodeIds.map(id => mapLabel(id, type));
+            const nodeSize = computeNodeSize(labels);
 
             const cytoscapeNodes = nodeIds.map(id => {
                 const label = mapLabel(id, type);
@@ -394,7 +445,8 @@
                         id: id,
                         label: label,
                         originalLabel: getOriginalLabel(id),
-                        nodeColor: getNodeColor(label)
+                        nodeColor: getNodeColor(label),
+                        nodeSize: nodeSize
                     }
                 };
             });
@@ -426,11 +478,11 @@
                             'text-valign': 'center',
                             'text-halign': 'center',
                             'font-family': 'Times New Roman, serif',
-                            'font-size': '16px',
+                            'font-size': `${NODE_FONT_SIZE}px`,
                             'font-weight': 'normal',
                             'color': '#000000',
-                            'width': 50,
-                            'height': 50
+                            'width': 'data(nodeSize)',
+                            'height': 'data(nodeSize)'
                         }
                     },
                     {
