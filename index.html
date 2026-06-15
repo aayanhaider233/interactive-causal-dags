@@ -7,7 +7,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"> -->
     <link href="https://fonts.cdnfonts.com/css/glacial-indifference-2" rel="stylesheet">
     <style>
         * {
@@ -56,6 +55,12 @@
             border-bottom: 3px solid #0a0a0a;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
         }
 
         .tab {
@@ -72,20 +77,6 @@
             top: 3px;
             white-space: nowrap;
             flex-shrink: 0;
-        }
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-            border-bottom: 3px solid #0a0a0a;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE and Edge */
-        }
-        
-        .tabs::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, Opera */
         }
 
         .tab:hover {
@@ -182,15 +173,6 @@
             color: #0a0a0a;
         }
 
-        .color-box {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 1.5px solid #000;
-            vertical-align: middle;
-            margin-right: 8px;
-        }
-
         .info {
             margin-top: 15px;
             padding: 15px;
@@ -204,9 +186,8 @@
             color: #0a0a0a;
         }
 
-        /* Custom tooltip dialog */
         .node-tooltip {
-            position: absolute;
+            position: fixed;
             background: #fff;
             border: 3px solid #0a0a0a;
             padding: 12px 16px;
@@ -227,27 +208,6 @@
             opacity: 1;
         }
 
-        /* .node-tooltip::before {
-            content: '';
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 8px solid transparent;
-            border-bottom-color: #0a0a0a;
-        }
-
-        .node-tooltip::after {
-            content: '';
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 6px solid transparent;
-            border-bottom-color: #fff;
-            margin-bottom: -1px;
-        } */
-
         .tooltip-label {
             color: #666;
             font-size: 11px;
@@ -260,106 +220,35 @@
             font-weight: 700;
         }
 
-        /* Mobile Responsive Styles */
         @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            h1 {
-                font-size: 24px;
-            }
-
-            .subtitle {
-                font-size: 12px;
-            }
-
-            .tabs {
-                flex-wrap: nowrap;
-                gap: 4px;
-            }
-
-            .tab {
-                padding: 12px 16px;
-                font-size: 12px;
-                min-width: auto;
-            }
-
-            .graph-container {
-                height: 500px;
-            }
-
-            .controls {
-                flex-direction: column;
-                top: 10px;
-                right: 10px;
-                gap: 6px;
-            }
-
-            .control-btn {
-                padding: 8px 12px;
-                font-size: 11px;
-            }
-
-            .legend {
-                padding: 15px;
-            }
-
-            .legend h3 {
-                font-size: 14px;
-            }
-
-            .legend-grid {
-                grid-template-columns: 1fr;
-                gap: 6px;
-                font-size: 11px;
-            }
-
-            .info {
-                font-size: 11px;
-                padding: 12px;
-            }
+            body { padding: 10px; }
+            h1 { font-size: 24px; }
+            .subtitle { font-size: 12px; }
+            .tabs { flex-wrap: nowrap; gap: 4px; }
+            .tab { padding: 12px 16px; font-size: 12px; min-width: auto; }
+            .graph-container { height: 500px; }
+            .controls { flex-direction: column; top: 10px; right: 10px; gap: 6px; }
+            .control-btn { padding: 8px 12px; font-size: 11px; }
+            .legend { padding: 15px; }
+            .legend h3 { font-size: 14px; }
+            .legend-grid { grid-template-columns: 1fr; gap: 6px; font-size: 11px; }
+            .info { font-size: 11px; padding: 12px; }
         }
 
-        /* Small mobile devices */
         @media (max-width: 480px) {
-            h1 {
-                font-size: 20px;
-            }
-
-            .tab {
-                padding: 10px 12px;
-                font-size: 11px;
-            }
-
-            .graph-container {
-                height: 400px;
-            }
-
-            .legend-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 4px;
-            }
+            h1 { font-size: 20px; }
+            .tab { padding: 10px 12px; font-size: 11px; }
+            .graph-container { height: 400px; }
+            .legend-item { flex-direction: column; align-items: flex-start; gap: 4px; }
         }
 
-        /* Landscape mobile */
         @media (max-height: 600px) and (orientation: landscape) {
-            .graph-container {
-                height: 350px;
-            }
+            .graph-container { height: 350px; }
         }
 
-        /* Touch device optimizations */
         @media (hover: none) and (pointer: coarse) {
-            .control-btn {
-                padding: 12px 18px;
-                font-size: 13px;
-            }
-
-            .tab {
-                padding: 16px 20px;
-            }
+            .control-btn { padding: 12px 18px; font-size: 13px; }
+            .tab { padding: 16px 20px; }
         }
     </style>
 </head>
@@ -371,9 +260,9 @@
         </header>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('me')">Module Eigengenes</button>
-            <button class="tab" onclick="switchTab('gene')">Genes</button>
-            <button class="tab" onclick="switchTab('dmr')">DMRs</button>
+            <button class="tab active" onclick="switchTab('me', this)">Module Eigengenes</button>
+            <button class="tab" onclick="switchTab('gene', this)">Genes</button>
+            <button class="tab" onclick="switchTab('dmr', this)">DMRs</button>
         </div>
 
         <div class="graph-container">
@@ -386,33 +275,7 @@
 
         <div class="legend">
             <h3>Variable Mappings</h3>
-            <div class="legend-grid">
-                <div class="legend-item"><span class="original">ME0-ME6</span> <span class="mapped">→ M0-M6</span></div>
-                <div class="legend-item"><span class="original">Age</span> <span class="mapped">→ A</span></div>
-                <div class="legend-item"><span class="original">Sex</span> <span class="mapped">→ S</span></div>
-                <div class="legend-item"><span class="original">Horvath EAA</span> <span class="mapped">→ E1</span></div>
-                <div class="legend-item"><span class="original">Hannum EAA</span> <span class="mapped">→ E2</span></div>
-                <div class="legend-item"><span class="original">GrimAge EAA</span> <span class="mapped">→ E3</span></div>
-                <div class="legend-item"><span class="original">Schizophrenia disease status</span> <span class="mapped">→ D</span></div>
-                <div class="legend-item"><span class="original">Gene names</span> <span class="mapped">→ G1, G2, ...</span></div>
-                <div class="legend-item"><span class="original">DMR names</span> <span class="mapped">→ D1, D2, ...</span></div>
-            </div>
-            <!-- 
-            <h3 style="margin-top: 20px;">Node Colors</h3>
-            <div class="legend-grid" style="gap: 12px;">
-                <div class="legend-item">
-                    <span class="color-box" style="background: #92D1C3;"></span>
-                    <span>Age/Sex/EAA (A, S, E1-E3)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="color-box" style="background: #FFB1BD;"></span>
-                    <span>Disease (D)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="color-box" style="background: #BFD5E2;"></span>
-                    <span>Other variables</span>
-                </div>
-            </div> -->
+            <div class="legend-grid" id="legendGrid"></div>
         </div>
 
         <div class="info">
@@ -420,7 +283,6 @@
         </div>
     </div>
 
-    <!-- Custom tooltip -->
     <div class="node-tooltip" id="nodeTooltip">
         <div class="tooltip-label">Original Name:</div>
         <div class="tooltip-value" id="tooltipValue"></div>
@@ -428,60 +290,85 @@
 
     <script src="graph_data.js"></script>
     <script>
-        // Label mappings - changed disease to D to avoid conflict with DMR labels
-        const LABEL_MAPPINGS = {
+        const STATIC_MAPPINGS = {
             'ME0': 'M0', 'ME1': 'M1', 'ME2': 'M2', 'ME3': 'M3',
             'ME4': 'M4', 'ME5': 'M5', 'ME6': 'M6',
             'age': 'A',
             'sex': 'S',
-            'horvath2013_EAA': 'E1',
-            'hannum_EAA': 'E2',
-            'grimage2_EAA': 'E3',
             'disease': 'D'
         };
 
+        const STATIC_LABELS = {
+            'ME0': 'ME0', 'ME1': 'ME1', 'ME2': 'ME2', 'ME3': 'ME3',
+            'ME4': 'ME4', 'ME5': 'ME5', 'ME6': 'ME6',
+            'age': 'Age',
+            'sex': 'Sex',
+            'disease': 'Schizophrenia disease status'
+        };
+
         let geneCounter = 1;
-        let dmrCounter = 1;
         const geneMappings = {};
         const dmrMappings = {};
 
-        function mapLabel(label, type) {
-            if (LABEL_MAPPINGS[label]) {
-                return LABEL_MAPPINGS[label];
-            }
-
-            if (type === 'gene') {
-                if (!geneMappings[label]) {
-                    geneMappings[label] = `G${geneCounter++}`;
-                }
-                return geneMappings[label];
-            }
-
-            if (type === 'dmr') {
-                if (!dmrMappings[label]) {
-                    dmrMappings[label] = `D${dmrCounter++}`;
-                }
-                return dmrMappings[label];
-            }
-
-            return label;
+        function mapDmrLabel(id) {
+            const m = id.match(/^chr(\w+)_DMR_(\d+)$/);
+            if (m) return `C${m[1]}D${m[2]}`;
+            return id;
         }
 
-        // Get node color based on label
+        function mapLabel(id, type) {
+            if (STATIC_MAPPINGS[id]) return STATIC_MAPPINGS[id];
+            if (type === 'gene') {
+                if (!geneMappings[id]) geneMappings[id] = `G${geneCounter++}`;
+                return geneMappings[id];
+            }
+            if (type === 'dmr') {
+                if (!dmrMappings[id]) dmrMappings[id] = mapDmrLabel(id);
+                return dmrMappings[id];
+            }
+            return id;
+        }
+
+        function getOriginalLabel(id) {
+            return STATIC_LABELS[id] || id;
+        }
+
         function getNodeColor(label) {
-            // Age/Sex/EAA variables
-            if (['A', 'S', 'E1', 'E2', 'E3'].includes(label)) {
-                return '#92D1C3';
-            }
-            // Disease
-            if (label === 'D') {
-                return '#FFB1BD';
-            }
-            // Others (MEs, Genes, DMRs)
+            if (['A', 'S'].includes(label)) return '#92D1C3';
+            if (label === 'D') return '#FFB1BD';
             return '#BFD5E2';
         }
 
-        // Build Cytoscape elements from edge data
+        function buildLegend(nodeIds, type) {
+            const items = [];
+            const seen = new Set();
+
+            nodeIds.forEach(id => {
+                if (seen.has(id)) return;
+                seen.add(id);
+                const mapped = mapLabel(id, type);
+                const original = getOriginalLabel(id);
+                items.push({ original, mapped });
+            });
+
+            items.sort((a, b) => {
+                const order = ['A', 'S', 'D'];
+                const ai = order.indexOf(a.mapped);
+                const bi = order.indexOf(b.mapped);
+                if (ai !== -1 && bi !== -1) return ai - bi;
+                if (ai !== -1) return -1;
+                if (bi !== -1) return 1;
+                return a.mapped.localeCompare(b.mapped, undefined, { numeric: true });
+            });
+
+            document.getElementById('legendGrid').innerHTML = items.map(({ original, mapped }) =>
+                `<div class="legend-item">
+                    <span class="original">${original}</span>
+                    <span class="mapped">→ ${mapped}</span>
+                </div>`
+            ).join('');
+        }
+
         function buildElements(edges, type) {
             const nodeSet = new Set();
             const cytoscapeEdges = [];
@@ -498,31 +385,32 @@
                 });
             });
 
-            const cytoscapeNodes = Array.from(nodeSet).map(id => {
+            const nodeIds = Array.from(nodeSet);
+
+            const cytoscapeNodes = nodeIds.map(id => {
                 const label = mapLabel(id, type);
                 return {
                     data: {
                         id: id,
                         label: label,
-                        originalLabel: id,
+                        originalLabel: getOriginalLabel(id),
                         nodeColor: getNodeColor(label)
                     }
                 };
             });
 
+            buildLegend(nodeIds, type);
+
             return [...cytoscapeNodes, ...cytoscapeEdges];
         }
 
-        // Cytoscape instance
         let cy;
         let currentLayout;
 
         function initCytoscape(graphType) {
             const elements = buildElements(GRAPH_DATA[graphType].edges, graphType);
 
-            if (cy) {
-                cy.destroy();
-            }
+            if (cy) cy.destroy();
 
             cy = cytoscape({
                 container: document.getElementById('cy'),
@@ -547,9 +435,7 @@
                     },
                     {
                         selector: 'node:selected',
-                        style: {
-                            'border-width': 3
-                        }
+                        style: { 'border-width': 3 }
                     },
                     {
                         selector: 'edge',
@@ -584,50 +470,38 @@
                 },
                 minZoom: 0.05,
                 maxZoom: 3,
-                // Mobile-friendly settings
                 wheelSensitivity: 0.2,
                 pixelRatio: 'auto',
                 motionBlur: false
             });
 
-            // Show original label on click/tap with custom tooltip
             cy.on('tap', 'node', function(evt) {
                 const node = evt.target;
                 const tooltip = document.getElementById('nodeTooltip');
                 const tooltipValue = document.getElementById('tooltipValue');
-                
-                // Set tooltip content
+
                 tooltipValue.textContent = node.data('originalLabel');
-                
-                // Get node position on screen
+
                 const renderedPosition = node.renderedPosition();
                 const container = document.getElementById('cy').getBoundingClientRect();
-                
-                // Position tooltip above the node
+
                 const tooltipX = container.left + renderedPosition.x;
                 const tooltipY = container.top + renderedPosition.y - 70;
-                
+
                 tooltip.style.left = tooltipX + 'px';
                 tooltip.style.top = tooltipY + 'px';
                 tooltip.style.transform = 'translateX(-50%)';
-                
-                // Show tooltip
+
                 tooltip.classList.add('show');
-                
-                // Hide tooltip after 3 seconds
-                setTimeout(() => {
-                    tooltip.classList.remove('show');
-                }, 3000);
+                setTimeout(() => tooltip.classList.remove('show'), 3000);
             });
 
-            // Hide tooltip when clicking elsewhere
             cy.on('tap', function(evt) {
                 if (evt.target === cy) {
                     document.getElementById('nodeTooltip').classList.remove('show');
                 }
             });
 
-            // Store current layout
             currentLayout = cy.elements().layout({
                 name: 'circle',
                 animate: true,
@@ -635,27 +509,19 @@
             });
         }
 
-        function switchTab(graphType) {
-            // Reset counters for new graph
+        function switchTab(graphType, btn) {
             geneCounter = 1;
-            dmrCounter = 1;
             Object.keys(geneMappings).forEach(key => delete geneMappings[key]);
             Object.keys(dmrMappings).forEach(key => delete dmrMappings[key]);
 
-            // Update tab UI
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            event.target.classList.add('active');
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            btn.classList.add('active');
 
-            // Initialize new graph
             initCytoscape(graphType);
         }
 
         function fitGraph() {
-            if (cy) {
-                cy.fit(null, 50);
-            }
+            if (cy) cy.fit(null, 50);
         }
 
         function resetLayout() {
@@ -671,23 +537,15 @@
             }
         }
 
-        // Initialize with ME graph
-        window.addEventListener('load', () => {
-            initCytoscape('me');
-        });
+        window.addEventListener('load', () => initCytoscape('me'));
 
-        // Prevent accidental zoom on mobile
         document.addEventListener('gesturestart', function(e) {
             e.preventDefault();
         });
 
-        // Handle orientation change
         window.addEventListener('orientationchange', function() {
             setTimeout(function() {
-                if (cy) {
-                    cy.resize();
-                    cy.fit(null, 50);
-                }
+                if (cy) { cy.resize(); cy.fit(null, 50); }
             }, 100);
         });
     </script>
